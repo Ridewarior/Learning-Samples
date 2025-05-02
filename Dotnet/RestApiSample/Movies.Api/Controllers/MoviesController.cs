@@ -16,7 +16,7 @@ public class MoviesController : ControllerBase
         _movieRepository = movieRepository;
     }
 
-    [HttpGet(EndpointRoutes.Movies.PathBase)]
+    [HttpGet(EndpointRoutes.Movies.GetAll)]
     public async Task<IActionResult> GetAll()
     {
        var movies = await _movieRepository.GetAllAsync();
@@ -38,7 +38,7 @@ public class MoviesController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPost(EndpointRoutes.Movies.PathBase)]
+    [HttpPost(EndpointRoutes.Movies.CreateMovie)]
     public async Task<IActionResult> Create([FromBody] CreateMovieRequest request)
     {
         var movie = request.MapToMovie();
@@ -51,5 +51,32 @@ public class MoviesController : ControllerBase
 
         var response = movie.MapToMovieResponse();
         return CreatedAtAction(nameof(Get), new {id = movie.Id}, response);
+    }
+
+    [HttpPut(EndpointRoutes.Movies.UpdateMovie)]
+    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request)
+    {
+        var movie = request.MapToMovie(id);
+        
+        var wasUpdated = await _movieRepository.UpdateAsync(movie);
+        if (!wasUpdated)
+        {
+            return NotFound();
+        }
+
+        var response = movie.MapToMovieResponse();
+        return Ok(response);
+    }
+
+    [HttpDelete(EndpointRoutes.Movies.DeleteMovie)]
+    public async Task<IActionResult> Delete([FromRoute] Guid id)
+    {
+        var wasDeleted = await _movieRepository.DeleteAsync(id);
+        if (!wasDeleted)
+        {
+            return NotFound();
+        }
+
+        return Ok();
     }
 }

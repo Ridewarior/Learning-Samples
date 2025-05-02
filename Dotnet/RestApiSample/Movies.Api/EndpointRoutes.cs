@@ -6,7 +6,12 @@ public static class EndpointRoutes
 
     public static class Movies
     {
-        public const string PathBase = $"{root}/movies";
+        private const string PathBase = $"{root}/movies";
+        
+        public const string GetAll = PathBase;
         public const string GetMovie = $"{PathBase}/{{id:guid}}";
+        public const string CreateMovie = PathBase;
+        public const string UpdateMovie = $"{PathBase}/{{id:guid}}";
+        public const string DeleteMovie = $"{PathBase}/{{id:guid}}";
     }
 }

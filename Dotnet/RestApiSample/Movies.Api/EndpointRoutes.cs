@@ -7,5 +7,6 @@ public static class EndpointRoutes
     public static class Movies
     {
         public const string PathBase = $"{root}/movies";
+        public const string GetMovie = $"{PathBase}/{{id:guid}}";
     }
 }

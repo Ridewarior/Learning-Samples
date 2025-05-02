@@ -16,6 +16,28 @@ public class MoviesController : ControllerBase
         _movieRepository = movieRepository;
     }
 
+    [HttpGet(EndpointRoutes.Movies.PathBase)]
+    public async Task<IActionResult> GetAll()
+    {
+       var movies = await _movieRepository.GetAllAsync();
+       
+       var response = movies.MapToMoviesResponse();
+       return Ok(response);
+    }
+
+    [HttpGet(EndpointRoutes.Movies.GetMovie)]
+    public async Task<IActionResult> Get([FromRoute] Guid id)
+    {
+        var movie = await _movieRepository.GetByIdAsync(id);
+        if (movie is null)
+        {
+            return NotFound();
+        }
+        
+        var response = movie.MapToMovieResponse();
+        return Ok(response);
+    }
+
     [HttpPost(EndpointRoutes.Movies.PathBase)]
     public async Task<IActionResult> Create([FromBody] CreateMovieRequest request)
     {
@@ -26,15 +48,8 @@ public class MoviesController : ControllerBase
         {
             return Problem(statusCode: 500, detail: "Failed to create movie");
         }
-        
-        MovieResponse response = new()
-        {
-            Id = movie.Id,
-            Title = movie.Title,
-            YearOfRelease = movie.YearOfRelease,
-            Genres = movie.Genres
-        };
 
+        var response = movie.MapToMovieResponse();
         return Created($"{EndpointRoutes.Movies.PathBase}/{movie.Id}", response);
 
     }

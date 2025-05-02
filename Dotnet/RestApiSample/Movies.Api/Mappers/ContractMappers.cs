@@ -1,4 +1,5 @@
 ﻿using Movies.Contracts.Requests;
+using Movies.Contracts.Responses;
 using Movies.Domain.Models;
 
 namespace Movies.Api.Mappers;
@@ -13,6 +14,25 @@ public static class ContractMappers
             Title = request.Title,
             YearOfRelease = request.YearOfRelease,
             Genres = request.Genres.ToList()
+        };
+    }
+
+    public static MovieResponse MapToMovieResponse(this Movie movie)
+    {
+        return new()
+        {
+            Id = movie.Id,
+            Title = movie.Title,
+            YearOfRelease = movie.YearOfRelease,
+            Genres = movie.Genres
+        };
+    }
+
+    public static MoviesResponse MapToMoviesResponse(this IEnumerable<Movie> movies)
+    {
+        return new MoviesResponse()
+        {
+            Movies = movies.Select(movie => movie.MapToMovieResponse())
         };
     }
 }

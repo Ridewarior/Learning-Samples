@@ -5,9 +5,8 @@ namespace Movies.Domain;
 
 public static class AppServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static void AddApplication(this IServiceCollection services)
     {
         services.AddSingleton<IMovieRepository, MovieRepository>();
-        return services;
     }
 }

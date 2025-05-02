@@ -50,7 +50,6 @@ public class MoviesController : ControllerBase
         }
 
         var response = movie.MapToMovieResponse();
-        return Created($"{EndpointRoutes.Movies.PathBase}/{movie.Id}", response);
-
+        return CreatedAtAction(nameof(Get), new {id = movie.Id}, response);
     }
 }

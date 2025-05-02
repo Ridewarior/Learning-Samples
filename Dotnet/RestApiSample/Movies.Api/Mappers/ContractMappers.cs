@@ -30,7 +30,7 @@ public static class ContractMappers
 
     public static MoviesResponse MapToMoviesResponse(this IEnumerable<Movie> movies)
     {
-        return new MoviesResponse()
+        return new()
         {
             Movies = movies.Select(movie => movie.MapToMovieResponse())
         };

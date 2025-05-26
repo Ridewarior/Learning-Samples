@@ -16,20 +16,20 @@ public class MoviesController : ControllerBase
     }
 
     [HttpGet(EndpointRoutes.Movies.GetAll)]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(CancellationToken cToken)
     {
-        var movies = await _movieService.GetAllAsync();
+        var movies = await _movieService.GetAllAsync(cToken);
 
         var response = movies.MapToMoviesResponse();
         return Ok(response);
     }
 
     [HttpGet(EndpointRoutes.Movies.GetMovie)]
-    public async Task<IActionResult> Get([FromRoute] string idOrSlug)
+    public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken cToken)
     {
         var movie = Guid.TryParse(idOrSlug, out var id)
-            ? await _movieService.GetByIdAsync(id)
-            : await _movieService.GetBySlugAsync(idOrSlug);
+            ? await _movieService.GetByIdAsync(id, cToken)
+            : await _movieService.GetBySlugAsync(idOrSlug, cToken);
 
         if (movie is null)
         {
@@ -41,10 +41,10 @@ public class MoviesController : ControllerBase
     }
 
     [HttpPost(EndpointRoutes.Movies.CreateMovie)]
-    public async Task<IActionResult> Create([FromBody] CreateMovieRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateMovieRequest request, CancellationToken cToken)
     {
         var movie = request.MapToMovie();
-        var wasCreated = await _movieService.CreateAsync(movie);
+        var wasCreated = await _movieService.CreateAsync(movie, cToken);
 
         if (!wasCreated)
         {
@@ -56,11 +56,11 @@ public class MoviesController : ControllerBase
     }
 
     [HttpPut(EndpointRoutes.Movies.UpdateMovie)]
-    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request)
+    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request, CancellationToken cToken)
     {
         var movie = request.MapToMovie(id);
 
-        var wasUpdated = await _movieService.UpdateAsync(movie);
+        var wasUpdated = await _movieService.UpdateAsync(movie, cToken);
         if (wasUpdated is null)
         {
             return NotFound();
@@ -71,9 +71,9 @@ public class MoviesController : ControllerBase
     }
 
     [HttpDelete(EndpointRoutes.Movies.DeleteMovie)]
-    public async Task<IActionResult> Delete([FromRoute] Guid id)
+    public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken cToken)
     {
-        var wasDeleted = await _movieService.DeleteAsync(id);
+        var wasDeleted = await _movieService.DeleteAsync(id, cToken);
         if (!wasDeleted)
         {
             return NotFound();

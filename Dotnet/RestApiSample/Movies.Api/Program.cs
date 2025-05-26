@@ -1,13 +1,15 @@
 using System.Text;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Movies.Api;
 using Movies.Api.Auth;
 using Movies.Api.Mappers;
+using Movies.Api.Swagger;
 using Movies.Domain;
 using Movies.Domain.Database;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -49,13 +51,16 @@ builder.Services.AddApiVersioning(x =>
         x.ReportApiVersions = true;
         x.ApiVersionReader = new MediaTypeApiVersionReader("api-version");
     })
-    .AddMvc();
+    .AddMvc()
+    .AddApiExplorer();
+
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(x =>
 {
+    x.OperationFilter<SwaggerDefaultValues>();
     x.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -90,7 +95,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(x =>
+    {
+        foreach (var description in app.DescribeApiVersions())
+        {
+           x.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+               description.GroupName); 
+        }
+    });
 }
 
 app.UseHttpsRedirection();

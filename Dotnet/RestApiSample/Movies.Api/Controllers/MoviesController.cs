@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Movies.Api.Auth;
 using Movies.Api.Mappers;
 using Movies.Contracts.Requests;
 using Movies.Domain.Services;
@@ -19,7 +20,8 @@ public class MoviesController : ControllerBase
     [HttpGet(EndpointRoutes.Movies.GetAll)]
     public async Task<IActionResult> GetAll(CancellationToken cToken)
     {
-        var movies = await _movieService.GetAllAsync(cToken);
+        var userId = HttpContext.GetUserId();
+        var movies = await _movieService.GetAllAsync(userId, cToken);
 
         var response = movies.MapToMoviesResponse();
         return Ok(response);
@@ -28,9 +30,11 @@ public class MoviesController : ControllerBase
     [HttpGet(EndpointRoutes.Movies.GetMovie)]
     public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken cToken)
     {
+        var userId = HttpContext.GetUserId();
+        
         var movie = Guid.TryParse(idOrSlug, out var id)
-            ? await _movieService.GetByIdAsync(id, cToken)
-            : await _movieService.GetBySlugAsync(idOrSlug, cToken);
+            ? await _movieService.GetByIdAsync(id, userId,  cToken)
+            : await _movieService.GetBySlugAsync(idOrSlug, userId,  cToken);
 
         if (movie is null)
         {
@@ -61,9 +65,10 @@ public class MoviesController : ControllerBase
     [HttpPut(EndpointRoutes.Movies.UpdateMovie)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request, CancellationToken cToken)
     {
+        var userId = HttpContext.GetUserId();
         var movie = request.MapToMovie(id);
 
-        var wasUpdated = await _movieService.UpdateAsync(movie, cToken);
+        var wasUpdated = await _movieService.UpdateAsync(movie, userId, cToken);
         if (wasUpdated is null)
         {
             return NotFound();

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Movies.Api.Auth;
+using Movies.Api.Health;
 using Movies.Api.Mappers;
 using Movies.Api.Swagger;
 using Movies.Domain;
@@ -57,6 +58,10 @@ builder.Services.AddApiVersioning(x =>
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 builder.Services.AddControllers();
+
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("Database");
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddSwaggerGen(x =>
 {
@@ -105,6 +110,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.MapHealthChecks("_health");
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

@@ -15,6 +15,7 @@ public class DbInitializer
     {
         using var connection = await _dbConnectionFactory.CreateConnectionAsync();
 
+        // primary table schema
         await connection.ExecuteAsync("""
                                       create table if not exists movies (
                                          id UUID primary key,
@@ -24,9 +25,17 @@ public class DbInitializer
                                       );
                                       """);
 
+        // primary table slug indexing
         await connection.ExecuteAsync("""
                                       create unique index concurrently if not exists movies_slug_idx on movies
                                       using btree(slug)
+                                      """);
+
+        // create genre table
+        await connection.ExecuteAsync("""
+                                      create table if not exists genres (
+                                          movieId UUID references movies (Id),
+                                          name TEXT not null);
                                       """);
     }
 }

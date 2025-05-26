@@ -19,21 +19,24 @@ public class MoviesController : ControllerBase
     [HttpGet(EndpointRoutes.Movies.GetAll)]
     public async Task<IActionResult> GetAll()
     {
-       var movies = await _movieRepository.GetAllAsync();
-       
-       var response = movies.MapToMoviesResponse();
-       return Ok(response);
+        var movies = await _movieRepository.GetAllAsync();
+
+        var response = movies.MapToMoviesResponse();
+        return Ok(response);
     }
 
     [HttpGet(EndpointRoutes.Movies.GetMovie)]
-    public async Task<IActionResult> Get([FromRoute] Guid id)
+    public async Task<IActionResult> Get([FromRoute] string idOrSlug)
     {
-        var movie = await _movieRepository.GetByIdAsync(id);
+        var movie = Guid.TryParse(idOrSlug, out var id)
+            ? await _movieRepository.GetByIdAsync(id)
+            : await _movieRepository.GetBySlugAsync(idOrSlug);
+
         if (movie is null)
         {
             return NotFound();
         }
-        
+
         var response = movie.MapToMovieResponse();
         return Ok(response);
     }
@@ -50,14 +53,14 @@ public class MoviesController : ControllerBase
         }
 
         var response = movie.MapToMovieResponse();
-        return CreatedAtAction(nameof(Get), new {id = movie.Id}, response);
+        return CreatedAtAction(nameof(Get), new { idOrSlug = movie.Id }, response);
     }
 
     [HttpPut(EndpointRoutes.Movies.UpdateMovie)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request)
     {
         var movie = request.MapToMovie(id);
-        
+
         var wasUpdated = await _movieRepository.UpdateAsync(movie);
         if (!wasUpdated)
         {

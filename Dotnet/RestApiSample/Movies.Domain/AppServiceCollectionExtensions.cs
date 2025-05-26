@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using Movies.Domain.Database;
 using Movies.Domain.Repositories;
 using Movies.Domain.Services;
@@ -11,6 +12,7 @@ public static class AppServiceCollectionExtensions
     {
         services.AddSingleton<IMovieRepository, MovieRepository>();
         services.AddSingleton<IMovieService, MovieService>();
+        services.AddValidatorsFromAssemblyContaining<IAppMarker>(ServiceLifetime.Singleton);
     }
 
     public static void AddDatabase(this IServiceCollection services, string connectionString)

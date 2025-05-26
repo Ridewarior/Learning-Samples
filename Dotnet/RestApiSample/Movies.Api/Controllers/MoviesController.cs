@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Movies.Api.Mappers;
 using Movies.Contracts.Requests;
 using Movies.Domain.Services;
@@ -40,6 +41,7 @@ public class MoviesController : ControllerBase
         return Ok(response);
     }
 
+    [Authorize(AuthConstants.TrustedMemberPolicy)]
     [HttpPost(EndpointRoutes.Movies.CreateMovie)]
     public async Task<IActionResult> Create([FromBody] CreateMovieRequest request, CancellationToken cToken)
     {
@@ -55,6 +57,7 @@ public class MoviesController : ControllerBase
         return CreatedAtAction(nameof(Get), new { idOrSlug = movie.Id }, response);
     }
 
+    [Authorize(AuthConstants.TrustedMemberPolicy)]
     [HttpPut(EndpointRoutes.Movies.UpdateMovie)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateMovieRequest request, CancellationToken cToken)
     {
@@ -70,6 +73,7 @@ public class MoviesController : ControllerBase
         return Ok(response);
     }
 
+    [Authorize(AuthConstants.AdminUserPolicy)]
     [HttpDelete(EndpointRoutes.Movies.DeleteMovie)]
     public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken cToken)
     {

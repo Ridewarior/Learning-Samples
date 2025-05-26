@@ -8,20 +8,22 @@ public class MovieService : IMovieService
 {
     private readonly IMovieRepository _movieRepository;
     private readonly IRatingRepository _ratingRepository;
-    private readonly IValidator<Movie> _validator;
+    private readonly IValidator<Movie> _movieValidator;
+    private readonly IValidator<GetAllMoviesOptions> _getAllMoviesOptionsValidator;
 
     public MovieService(IMovieRepository movieRepository,
-        IValidator<Movie> validator,
-        IRatingRepository ratingRepository)
+        IValidator<Movie> movieValidator,
+        IRatingRepository ratingRepository, IValidator<GetAllMoviesOptions> getAllMoviesOptionsValidator)
     {
         _movieRepository = movieRepository;
-        _validator = validator;
+        _movieValidator = movieValidator;
         _ratingRepository = ratingRepository;
+        _getAllMoviesOptionsValidator = getAllMoviesOptionsValidator;
     }
 
     public async Task<bool> CreateAsync(Movie movie, CancellationToken cancellationToken = default)
     {
-        await _validator.ValidateAndThrowAsync(movie, cancellationToken);
+        await _movieValidator.ValidateAndThrowAsync(movie, cancellationToken);
         return await _movieRepository.CreateAsync(movie, cancellationToken);
     }
 
@@ -35,14 +37,16 @@ public class MovieService : IMovieService
         return await _movieRepository.GetBySlugAsync(slug, userId, cancellationToken);
     }
 
-    public async Task<IEnumerable<Movie>> GetAllAsync(Guid? userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Movie>> GetAllAsync(GetAllMoviesOptions options, CancellationToken cancellationToken = default)
     {
-        return await _movieRepository.GetAllAsync(userId, cancellationToken);
+        await _getAllMoviesOptionsValidator.ValidateAndThrowAsync(options, cancellationToken);
+        
+        return await _movieRepository.GetAllAsync(options, cancellationToken);
     }
 
     public async Task<Movie?> UpdateAsync(Movie movie, Guid? userId, CancellationToken cancellationToken = default)
     {
-        await _validator.ValidateAndThrowAsync(movie, cancellationToken);
+        await _movieValidator.ValidateAndThrowAsync(movie, cancellationToken);
         var movieFound = await _movieRepository.ExistsByIdAsync(movie.Id, cancellationToken);
         if (!movieFound)
         {

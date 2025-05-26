@@ -59,4 +59,32 @@ public static class ContractMappers
             Slug = x.Slug,
         });
     }
+
+    public static GetAllMoviesOptions MapToOptions(this GetAllMoviesRequest request)
+    {
+        SortOrder sortOrder;
+        if (request.SortBy is null)
+        {
+            sortOrder = SortOrder.Unsorted;
+        }
+        else
+        {
+            sortOrder = request.SortBy.StartsWith('-') ? SortOrder.Descending : SortOrder.Ascending;
+        }
+        
+        return new()
+        {
+            Title = request.Title,
+            YearOfRelease = request.YearOfRelease,
+            SortField = request.SortBy?.TrimStart('+', '-'),
+            SortOrder = sortOrder
+        };
+    }
+
+    public static GetAllMoviesOptions WithUser(this GetAllMoviesOptions options, Guid? userId)
+    {
+        options.UserId = userId;
+        
+        return options;
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.IdentityModel.Tokens;
 using Movies.Api.Auth;
 using Movies.Api.Mappers;
@@ -15,13 +16,17 @@ namespace Movies.Api.Controllers;
 public class MoviesController : ControllerBase
 {
     private readonly IMovieService _movieService;
+    private readonly IOutputCacheStore _outputCacheStore;
 
-    public MoviesController(IMovieService movieService)
+    public MoviesController(IMovieService movieService, IOutputCacheStore outputCacheStore)
     {
         _movieService = movieService;
+        _outputCacheStore = outputCacheStore;
     }
 
     [HttpGet(EndpointRoutes.Movies.GetAll)]
+    [OutputCache(PolicyName = "MovieCache")]
+    // [ResponseCache(Duration = 30, VaryByQueryKeys = new[]{ "title", "yearofrelease", "sortby", "page", "pagesize"})]
     [ProducesResponseType<MoviesResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] GetAllMoviesRequest request, CancellationToken cToken)
     {
@@ -37,6 +42,8 @@ public class MoviesController : ControllerBase
     }
 
     [HttpGet(EndpointRoutes.Movies.GetMovie)]
+    [OutputCache]
+    // [ResponseCache(Duration = 30, VaryByHeader = "Accept, Accept-Encoding", Location = ResponseCacheLocation.Any)]
     [ProducesResponseType<MovieResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken cToken)
@@ -70,6 +77,8 @@ public class MoviesController : ControllerBase
             return Problem(statusCode: 500, detail: "Failed to create movie");
         }
 
+        await _outputCacheStore.EvictByTagAsync("movies", cToken);
+
         var response = movie.MapToMovieResponse();
         return CreatedAtAction(nameof(Get), new { idOrSlug = movie.Id }, response);
     }
@@ -90,7 +99,8 @@ public class MoviesController : ControllerBase
         {
             return NotFound();
         }
-
+        
+        await _outputCacheStore.EvictByTagAsync("movies", cToken);
         var response = movie.MapToMovieResponse();
         return Ok(response);
     }
@@ -107,6 +117,7 @@ public class MoviesController : ControllerBase
             return NotFound();
         }
 
+        await _outputCacheStore.EvictByTagAsync("movies", cToken);
         return Ok();
     }
 }

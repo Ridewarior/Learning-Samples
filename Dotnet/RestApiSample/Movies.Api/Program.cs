@@ -57,6 +57,18 @@ builder.Services.AddApiVersioning(x =>
 
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
+// builder.Services.AddResponseCaching();
+builder.Services.AddOutputCache(x =>
+{
+    x.AddBasePolicy(c => c.Cache());
+    x.AddPolicy("MovieCache", c =>
+    {
+        c.Cache()
+            .Expire(TimeSpan.FromMinutes(1))
+            .SetVaryByQuery(["title", "yearofrelease", "sortby", "page", "pagesize"])
+            .Tag("movies");
+    });
+});
 builder.Services.AddControllers();
 
 builder.Services.AddHealthChecks()
@@ -115,6 +127,10 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// app.UseCors();
+// app.UseResponseCaching(); // Client based caching
+app.UseOutputCache(); // Server based caching
 
 app.UseMiddleware<ValidationMappingMiddleware>();
 app.MapControllers();

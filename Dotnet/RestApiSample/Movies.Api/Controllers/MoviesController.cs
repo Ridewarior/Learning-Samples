@@ -63,8 +63,9 @@ public class MoviesController : ControllerBase
         return Ok(response);
     }
 
-    [Authorize(AuthConstants.TrustedMemberPolicy)]
+    // [Authorize(AuthConstants.TrustedMemberPolicy)]
     [HttpPost(EndpointRoutes.Movies.CreateMovie)]
+    [ServiceFilter<ApiKeyAuthFilter>]
     [ProducesResponseType<MovieResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationFailureResponse>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateMovieRequest request, CancellationToken cToken)
